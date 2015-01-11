@@ -2,6 +2,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:layout_margin="5dp"
     android:id="@+id/mainlistview"
     tools:context=".mainlistview">
 
@@ -21,6 +22,7 @@
 
     <EditText
         android:layout_width="fill_parent"
+        android:background="@drawable/oval"
         android:layout_height="wrap_content"
         android:id="@+id/etsearch"
         android:hint="search here"
