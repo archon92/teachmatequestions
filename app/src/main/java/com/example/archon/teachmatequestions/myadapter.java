@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 public class myadapter extends FragmentStatePagerAdapter {
 
 
+
     public myadapter(FragmentManager fm) {
         super(fm);
     }

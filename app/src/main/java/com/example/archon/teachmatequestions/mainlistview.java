@@ -3,17 +3,21 @@ package com.example.archon.teachmatequestions;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,16 +42,19 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
 /**
  * Created by archon on 11-01-2015.
  */
-public class mainlistview extends Fragment {
+public class mainlistview extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     public ListView list;
     public String imageurl;
     EditText etsearch;
     ImageView imageView;
     Question_Adapter question_adapter;
+    public int REFRESH_TIME_IN_SECONDS = 5;
+    SwipeRefreshLayout swipeRefreshLayout;
     public ArrayList<Question_Model> questionlist;
     Boolean flag = true;
 
@@ -95,13 +102,19 @@ public class mainlistview extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable final Bundle savedInstanceState) {
         FragmentActivity faActivity  = (FragmentActivity) super.getActivity();
 
+
         RelativeLayout relativeLayout=(RelativeLayout)inflater.inflate(R.layout.mainlistview,container,false);
+        swipeRefreshLayout = (SwipeRefreshLayout)relativeLayout.findViewById(R.id.lySwipeRefresh);
 
         imageView = (ImageView)relativeLayout.findViewById(R.id.imageView);
         list = (ListView)relativeLayout.findViewById(R.id.listView);
         etsearch = (EditText)relativeLayout.findViewById(R.id.etsearch);
+        swipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setColorScheme(android.R.color.holo_blue_light,
+                android.R.color.white, android.R.color.holo_blue_light,
+                android.R.color.white);
 
-        //etsearch.setVisibility(View.GONE);
+        etsearch.setVisibility(View.GONE);
         questionlist = new ArrayList<Question_Model>();
         list.invalidateViews();
         etsearch.addTextChangedListener(new TextWatcher() {
@@ -134,7 +147,7 @@ public class mainlistview extends Fragment {
 
 
 //seed values
-        Question_Adapter question_adapter1=new Question_Adapter(getActivity().getApplicationContext(),R.layout.singlerow,questionlist);
+       /* Question_Adapter question_adapter1=new Question_Adapter(getActivity().getApplicationContext(),R.layout.singlerow,questionlist);
 
         Question_Model question=new Question_Model();
         question.setQuestion_id("question_id");//this would be the question id
@@ -147,11 +160,15 @@ public class mainlistview extends Fragment {
         questionlist.add(0,question);
 
        list.setAdapter(question_adapter1);
-        list.setTextFilterEnabled(true);
+        list.setTextFilterEnabled(true);*/
 
 
-        //  new questionfeed().execute("http://10.163.179.199:8222/MvcApplication1/Enigma/ListQuestions");
-
+          //new questionfeed().execute("http://10.163.179.199:8222/MvcApplication1/Enigma/ListQuestions");
+        try {
+            new questionfeed().execute("http://10.163.179.199:8222/MvcApplication1/Enigma/ListQuestions");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -221,6 +238,19 @@ public class mainlistview extends Fragment {
         return relativeLayout;
     }
 
+    @Override
+    public void onRefresh() {
+        questionlist.clear();
+        new questionfeed().execute("http://10.163.179.199:8222/MvcApplication1/Enigma/ListQuestions");
+
+    }
+    private void stopSwipeRefresh() {
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+
+
+
 
 
    /* @Override
@@ -258,8 +288,9 @@ public class mainlistview extends Fragment {
 
 
     public class questionfeed extends AsyncTask<String, Void, Boolean> {
+
         // ImageView imageView = (ImageView)relativeLayout.findViewById(R.id.imageView);
-        ProgressDialog dialog = new ProgressDialog(getActivity().getApplicationContext());
+        ProgressDialog dialog = new ProgressDialog(getActivity());
 
         @Override
         protected void onPreExecute() {
@@ -326,9 +357,10 @@ public class mainlistview extends Fragment {
 
                 Parcelable state = list.onSaveInstanceState();
 
-                //list.setAdapter(question_adapter);
+                list.setAdapter(question_adapter);
                 list.setTextFilterEnabled(true);
                 Toast.makeText(getActivity().getApplicationContext(), "" + list.getCount(), Toast.LENGTH_LONG).show();
+                stopSwipeRefresh();
                 list.onRestoreInstanceState(state);
 
                 //question_adapter.notifyDataSetChanged();
